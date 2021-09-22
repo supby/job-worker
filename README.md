@@ -48,6 +48,7 @@ message QueryStatusRequest {
 }
 
 enum JobStatus {
+    UNKNOWN = 0;
     RUNNING = 1;    
     EXITED = 2;
 }
