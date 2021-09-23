@@ -79,3 +79,16 @@ service WorkerService {
 ### CLI client
 
 Standalone application provides CLI interface to communicate with GRPC API over network.
+
+## Security
+
+Transport security is based on TLS 1.3. The cipher suites is: TLS_AES_256_GCM_SHA384.
+
+### Authentification
+
+Authentification is based on x.509 certificates. Server and Client are shared common CA root certificate. Every side checks others side certificate against common CA.
+
+### Authorization
+
+[TBD]
+
