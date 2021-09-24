@@ -78,7 +78,7 @@ service WorkerService {
 
 ### CLI client
 
-Standalone application provides CLI interface to communicate with GRPC API over network.
+Standalone application provides CLI interface to communicate with server GRPC API over network.
 
 ## Security
 
@@ -86,9 +86,9 @@ Transport security is based on TLS 1.3. The cipher suites is: TLS_AES_256_GCM_SH
 
 ### Authentification
 
-Authentification is based on x.509 certificates. Server and Client are shared common CA root certificate. Every side checks others side certificate against common CA.
+Authentification is based on x.509 certificates. Every side checks others side certificate against common CA. Clients certificate should be geenrated and signed by CA during provisioning process.
 
 ### Authorization
 
-[TBD]
+Roles system is based on "Issued to" field of clients certificate. Provisioning center geenrates clients certificate based on clients registration data and assigned role. Using this approach clients certificate can be mapped to appropriate role on server side.
 
