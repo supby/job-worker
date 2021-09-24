@@ -93,7 +93,7 @@ Authentification is based on x.509 certificates. Every side checks others side c
 Client's role should be stored in X.509 v3 extensions of clients certificate. Provisioning center generates clients certificate based on clients registration data and assigned role. Using this approach clients certificate can be mapped to appropriate role on server side.
 
 Server should supports two roles:
-- Readonly: quering job status, stream job output.
+- Readonly: quering job status, stream jobs output.
 - Full: full access to functionality provided by API.
 
 
@@ -101,9 +101,9 @@ Server should supports two roles:
 
 ### Authorization
 
-As provisioning of client is not part of the task, CA and certificates will be generated manually using openssl. Roles will be hardcoded in memory on server side.
+Provisioning of clients is not a part of the task. CA and certificates will be generated manually using openssl. Roles will be hardcoded in on server side.
 
 ### Loggining
 
-As persistent logging system is not part of the task. Server it self will log in standart output. Logs from jobs processes will be stored in memory only with some rotation based on size.
+Persistent logging system is not a part of the task. Server it self will log in standart output. Logs from jobs processes will be stored in memory only with some rotation based on size.
 
