@@ -8,9 +8,9 @@ The project aims to provide tools to run and control jobs (processes) on remote 
 
 It is Golang package which provides abstration to control host processes. It supports four operations: 
 - Run process
-- Stop process
+- Stop process. SIGTERM signal should be sent to process.
 - Query current process' status
-- Streaming process' output.
+- Streaming process' output(stdout and stderr).
 
 
 ### GRPC API
@@ -28,10 +28,9 @@ message StartRequest {
 }
   
 message StartResponse {
-    string jobID = 1;
-    int32 pid = 2;
-    bool success = 3;
-    string message = 4;
+    string jobID = 1;    
+    bool success = 2;
+    string message = 3;
 }
   
 message StopRequest {
@@ -51,6 +50,7 @@ enum JobStatus {
     UNKNOWN = 0;
     RUNNING = 1;    
     EXITED = 2;
+    STOPPED = 3;
 }
   
 message QueryStatusResponse {
@@ -79,6 +79,21 @@ service WorkerService {
 ### CLI client
 
 Standalone application provides CLI interface to communicate with server GRPC API over network.
+Usage: 
+``` 
+workerclient start <command> -args <arg1> <arg2>
+workerclient stop|query|stream -j <job_id>
+
+```
+
+Conection related configuration should be in yaml file. (but in due to simplicity it will be hardcoded in app)
+```
+serverAddress: "localhost:5000"
+serverCA: "path to CA file"
+clientCertificate: "path to client cert"
+clientKey: "path to private key of client cert"
+```
+
 
 ## Security
 
@@ -90,7 +105,8 @@ Authentification is based on x.509 certificates. Every side checks others side c
 
 ### Authorization
 
-Client's role should be stored in X.509 v3 extensions of clients certificate. Provisioning center generates clients certificate based on clients registration data and assigned role. Using this approach clients certificate can be mapped to appropriate role on server side.
+Client's role should be stored in X.509 v3 extensions of clients certificate. For role storing will be used appropriate extension with OID=1.2.840.10070.8.1. OID reference here http://oid-info.com/get/1.2.840.10070.8.1
+Provisioning center generates clients certificate based on clients registration data and assigned role. Using this approach clients certificate can be mapped to appropriate role on server side.
 
 Server should supports two roles:
 - Readonly: quering job status, stream jobs output.
@@ -103,7 +119,11 @@ Server should supports two roles:
 
 Provisioning of clients is not a part of the task. CA and certificates will be generated manually using openssl. Roles will be hardcoded in on server side.
 
+### Configuration
+
+All configuration(server and client) will be hardcoded in app because of simplicity.
+
 ### Loggining
 
-Persistent logging system is not a part of the task. Server it self will log in standart output. Logs from jobs processes will be stored in memory only with some rotation based on size.
+Persistent logging system is not a part of the task. Server it self will log in standart output. Logs from jobs processes will be stored in memory.
 
