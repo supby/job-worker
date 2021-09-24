@@ -86,9 +86,24 @@ Transport security is based on TLS 1.3. The cipher suites is: TLS_AES_256_GCM_SH
 
 ### Authentification
 
-Authentification is based on x.509 certificates. Every side checks others side certificate against common CA. Clients certificate should be geenrated and signed by CA during provisioning process.
+Authentification is based on x.509 certificates. Every side checks others side certificate against common CA. Clients certificate should be generated and signed by CA during provisioning process.
 
 ### Authorization
 
-Roles system is based on "Issued to" field of clients certificate. Provisioning center geenrates clients certificate based on clients registration data and assigned role. Using this approach clients certificate can be mapped to appropriate role on server side.
+Client's role should be stored in X.509 v3 extensions of clients certificate. Provisioning center generates clients certificate based on clients registration data and assigned role. Using this approach clients certificate can be mapped to appropriate role on server side.
+
+Server should supports two roles:
+- Readonly: quering job status, stream job output.
+- Full: full access to functionality provided by API.
+
+
+## Trade-offs
+
+### Authorization
+
+As provisioning of client is not part of the task, CA and certificates will be generated manually using openssl. Roles will be hardcoded in memory on server side.
+
+### Loggining
+
+As persistent logging system is not part of the task. Server it self will log in standart output. Logs from jobs processes will be stored in memory only with some rotation based on size.
 
