@@ -99,7 +99,7 @@ clientKey: "path to private key of client cert"
 
 Transport security is based on TLS 1.3. The cipher suites is: TLS_AES_256_GCM_SHA384.
 
-### Authentification
+### Authentication
 
 Authentification is based on x.509 certificates. Every side checks others side certificate against common CA. Clients certificate should be generated and signed by CA during provisioning process.
 
