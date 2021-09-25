@@ -45,7 +45,7 @@ message GetOutputRequest {
 }
   
 message GetOutputResponse {
-    string output = 1;
+    bytes output = 1;
 }
 
 service WorkerService {
