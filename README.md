@@ -51,6 +51,7 @@ enum JobStatus {
     RUNNING = 1;    
     EXITED = 2;
     STOPPED = 3;
+    STARTED = 4;
 }
   
 message QueryStatusResponse {
@@ -65,7 +66,7 @@ message GetOutputRequest {
 }
   
 message GetOutputResponse {
-    string output = 1;
+    bytes output = 1;
 }
 
 service WorkerService {

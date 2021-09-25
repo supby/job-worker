@@ -8,10 +8,9 @@ message StartRequest {
 }
   
 message StartResponse {
-    string jobID = 1;
-    int32 pid = 2;
-    bool success = 3;
-    string message = 4;
+    string jobID = 1;    
+    bool success = 2;
+    string message = 3;
 }
   
 message StopRequest {
@@ -31,6 +30,8 @@ enum JobStatus {
     UNKNOWN = 0;
     RUNNING = 1;    
     EXITED = 2;
+    STOPPED = 3;
+    STARTED = 4;
 }
   
 message QueryStatusResponse {
