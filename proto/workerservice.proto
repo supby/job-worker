@@ -4,26 +4,21 @@ package workerservice;
 
 message StartRequest {
     string commandName = 1;
-    repeated string Arguments = 2;
+    repeated string arguments = 2;
 }
   
 message StartResponse {
-    string jobID = 1;    
-    bool success = 2;
-    string message = 3;
+    bytes jobID = 1;
 }
   
 message StopRequest {
-    string jobID = 1;
+    bytes jobID = 1;
 }
   
-message StopResponse {    
-    bool success = 1;
-    string message = 2;
-}
+message StopResponse { }
   
 message QueryStatusRequest {
-    string jobID = 1;
+    bytes jobID = 1;
 }
 
 enum JobStatus {
@@ -35,14 +30,14 @@ enum JobStatus {
 }
   
 message QueryStatusResponse {
-    int32 pid = 1;
-    int32 exitCode = 2;
-    string command = 3;
+    int32 exitCode = 1;
+    string commandName = 2;
+    repeated string arguments = 3;
     JobStatus JobStatus = 4;
 }
   
 message GetOutputRequest {
-    string jobID = 1;
+    bytes jobID = 1;
 }
   
 message GetOutputResponse {

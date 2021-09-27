@@ -10,12 +10,17 @@ It is Golang package which provides abstration to control host processes. It sup
 - Run process
 - Stop process. SIGTERM signal should be sent to process.
 - Query current process' status
-- Streaming process' output(stdout and stderr).
+- Streaming process' output(stdout and stderr). On the library level stdout/stderr (io.Writer)  will be assigned with in-memory io.Writer   implemetation which pushes output data to chain(golang chain) on every Write from the process. The chain data will be consumed in Stream method in API server.
 
 
 ### GRPC API
 
-Exposes API to provide access to library's functionality over network. API is responsible for authentification, authorization and TLS communication.
+Exposes API to provide access to library's functionality over network. API is responsible for authentification, authorization and TLS communication. Status of API execution should be returned using standart GRPC status codes. Possible status codes:
+ - INTERNAL: Some inernal error.
+ - NOT_FOUND: Requested jobID is not found. 
+ - INVALID_ARGUMENT: Invalid data format is provided. For instance, jobId should be UUID. Command is empty.
+ - UNAUTHENTICATED: Client request cannot be authenticated. (no cert, wrong cert)
+ - PERMISSION_DENIED: Client request authenticated but doesn't have permission to perform some operation. For instance 'readonly' cannot stop job.
 
 ```
 syntax = "proto3";
@@ -24,26 +29,21 @@ package workerservice;
 
 message StartRequest {
     string commandName = 1;
-    repeated string Arguments = 2;
+    repeated string arguments = 2;
 }
   
 message StartResponse {
-    string jobID = 1;    
-    bool success = 2;
-    string message = 3;
+    bytes jobID = 1;
 }
   
 message StopRequest {
-    string jobID = 1;
+    bytes jobID = 1;
 }
   
-message StopResponse {    
-    bool success = 1;
-    string message = 2;
-}
+message StopResponse { }
   
 message QueryStatusRequest {
-    string jobID = 1;
+    bytes jobID = 1;
 }
 
 enum JobStatus {
@@ -55,14 +55,14 @@ enum JobStatus {
 }
   
 message QueryStatusResponse {
-    int32 pid = 1;
-    int32 exitCode = 2;
-    string command = 3;
+    int32 exitCode = 1;
+    string commandName = 2;
+    repeated string arguments = 3;
     JobStatus JobStatus = 4;
 }
   
 message GetOutputRequest {
-    string jobID = 1;
+    bytes jobID = 1;
 }
   
 message GetOutputResponse {
