@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package workerservice;
+
+message StartRequest {
+    string commandName = 1;
+    repeated string arguments = 2;
+}
+  
+message StartResponse {
+    bytes jobID = 1;
+}
+  
+message StopRequest {
+    bytes jobID = 1;
+}
+  
+message StopResponse { }
+  
+message QueryStatusRequest {
+    bytes jobID = 1;
+}
+
+enum JobStatus {
+    UNKNOWN = 0;
+    RUNNING = 1;    
+    EXITED = 2;
+    STOPPED = 3;
+    STARTED = 4;
+}
+  
+message QueryStatusResponse {
+    int32 exitCode = 1;
+    string commandName = 2;
+    repeated string arguments = 3;
+    JobStatus JobStatus = 4;
+}
+  
+message GetOutputRequest {
+    bytes jobID = 1;
+}
+  
+message GetOutputResponse {
+    bytes output = 1;
+}
+
+service WorkerService {
+    rpc Start(StartRequest) returns (StartResponse);
+    rpc Stop(StopRequest) returns (StopResponse);
+    rpc QueryStatus(QueryStatusRequest) returns (QueryStatusResponse);
+    rpc GetOutput(GetOutputRequest) returns (stream GetOutputResponse);
+}
