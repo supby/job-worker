@@ -1,6 +1,10 @@
 package workerlib
 
-import "os/exec"
+import (
+	"os/exec"
+
+	"github.com/supby/job-worker/workerlib/joblogger"
+)
 
 type Command struct {
 	Name string
@@ -13,7 +17,8 @@ type Status struct {
 }
 
 type Job struct {
-	ID     []byte
+	ID     [16]byte
 	Cmd    *exec.Cmd
 	Status *Status
+	Logger joblogger.JobLogger
 }
