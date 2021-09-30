@@ -12,7 +12,7 @@ import (
 type Worker interface {
 	Start(command job.Command) (job.JobID, error)
 	Stop(jobID job.JobID) error
-	Query(jobID job.JobID) (job.Status, error)
+	Query(jobID job.JobID) (*job.Status, error)
 	Stream(jobID job.JobID) (chan []byte, error)
 }
 
@@ -71,14 +71,14 @@ func (w *worker) getJob(jobID job.JobID) (job.Job, error) {
 	return job, nil
 }
 
-func (w *worker) Query(jobID job.JobID) (job.Status, error) {
+func (w *worker) Query(jobID job.JobID) (*job.Status, error) {
 	w.mtx.Lock()
 	job, err := w.getJob(jobID)
 	w.mtx.Unlock()
 	if err != nil {
-		return *job.GetStatus(), err
+		return nil, err
 	}
-	return *job.GetStatus(), nil
+	return job.GetStatus(), nil
 }
 
 func (w *worker) Stream(jobID job.JobID) (chan []byte, error) {

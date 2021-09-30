@@ -48,11 +48,13 @@ func (j *job) Start(command Command) error {
 
 	j.cmd = cmd
 
+	j.status.StatusCode = STARTED
+
 	if err := cmd.Start(); err != nil {
 		return err
 	}
 
-	j.status.StatusCode = STARTED
+	j.status.StatusCode = RUNNING
 
 	go j.updateJobStatus()
 
@@ -66,11 +68,8 @@ func (j *job) updateJobStatus() {
 
 	j.status.ExitCode = j.cmd.ProcessState.ExitCode()
 	j.status.Exited = j.cmd.ProcessState.Exited()
-
-	if j.status.Exited {
+	if j.status.StatusCode != STOPPED {
 		j.status.StatusCode = EXITED
-	} else {
-		j.status.StatusCode = RUNNING
 	}
 }
 

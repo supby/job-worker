@@ -8,13 +8,15 @@ import (
 )
 
 func main() {
-	w1 := workerlib.New()
-	jobID, _ := w1.Start(job.Command{
+	w := workerlib.New()
+
+	// Example of streaming
+	jobID, _ := w.Start(job.Command{
 		Name: "ls",
 		Args: []string{"-l"},
 	})
 
-	outchan, _ := w1.Stream(jobID)
+	outchan, _ := w.Stream(jobID)
 
 	d := <-outchan
 
