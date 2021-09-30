@@ -4,11 +4,12 @@ import (
 	"log"
 
 	"github.com/supby/job-worker/workerlib"
+	"github.com/supby/job-worker/workerlib/job"
 )
 
 func main() {
 	w1 := workerlib.New()
-	jobID, _ := w1.Start(workerlib.Command{
+	jobID, _ := w1.Start(job.Command{
 		Name: "ls",
 		Args: []string{"-l"},
 	})
@@ -17,5 +18,5 @@ func main() {
 
 	d := <-outchan
 
-	log.Println(d)
+	log.Println(string(d))
 }

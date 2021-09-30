@@ -6,7 +6,10 @@ type JobLogger interface {
 }
 
 func New() JobLogger {
-	return &jobLogger{}
+	// TODO: channel is buffered as it is in memory store.
+	return &jobLogger{
+		outchan: make(chan []byte, 128),
+	}
 }
 
 type jobLogger struct {
@@ -21,4 +24,8 @@ func (jl *jobLogger) Write(p []byte) (n int, err error) {
 
 func (jl *jobLogger) GetStream() chan []byte {
 	return jl.outchan
+}
+
+func (jl *jobLogger) dispose() {
+	close(jl.outchan)
 }

@@ -4,74 +4,52 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os/exec"
 	"sync"
-	"syscall"
 
-	"github.com/google/uuid"
-	"github.com/supby/job-worker/workerlib/joblogger"
+	"github.com/supby/job-worker/workerlib/job"
 )
 
 type Worker interface {
-	Start(command Command) ([16]byte, error)
-	Stop(jobID [16]byte) error
-	Query(jobID [16]byte) (Status, error)
-	Stream(jobID [16]byte) (chan []byte, error)
+	Start(command job.Command) (job.JobID, error)
+	Stop(jobID job.JobID) error
+	Query(jobID job.JobID) (job.Status, error)
+	Stream(jobID job.JobID) (chan []byte, error)
 }
 
 func New() Worker {
 	return &worker{
-		jobs: make(map[[16]byte]*Job),
+		jobs: make(map[job.JobID]job.Job),
 	}
 }
 
 type worker struct {
-	jobs map[[16]byte]*Job
+	jobs map[job.JobID]job.Job
 	mtx  sync.Mutex
 }
 
-func (w *worker) Start(command Command) ([16]byte, error) {
-	cmd := exec.Command(command.Name, command.Args...)
-	jobID, err := uuid.NewRandom()
+func (w *worker) Start(command job.Command) (job.JobID, error) {
+	job, err := job.New()
 	if err != nil {
-		log.Printf("JobID creation failed, %v\n", err)
-		return jobID, err
+		log.Printf("Job creation failed, %v\n", err)
+		return job.GetID(), err
 	}
 
-	jobLogger := joblogger.New()
-
-	cmd.Stdout = jobLogger
-	cmd.Stderr = jobLogger
-	if err = cmd.Start(); err != nil {
-		log.Printf("Command starting failed, %v\n", err)
-		return jobID, err
+	err = job.Start(command)
+	if err != nil {
+		log.Printf("Job staring failed, %v\n", err)
+		return job.GetID(), err
 	}
 
-	job := Job{ID: jobID, Cmd: cmd, Status: &Status{}, Logger: jobLogger}
+	jobID := job.GetID()
+
 	w.mtx.Lock()
-	w.jobs[jobID] = &job
+	w.jobs[jobID] = job
 	w.mtx.Unlock()
-
-	go w.updateJobStatus(job)
 
 	return jobID, nil
 }
 
-func (w *worker) updateJobStatus(job Job) {
-	if err := job.Cmd.Wait(); err != nil {
-		log.Printf("Command execution failed, %v\n", err)
-	}
-
-	status := Status{
-		ExitCode: job.Cmd.ProcessState.ExitCode(),
-		Exited:   job.Cmd.ProcessState.Exited(),
-	}
-	w.mtx.Lock()
-	job.Status = &status
-	w.mtx.Unlock()
-}
-
-func (w *worker) Stop(jobID [16]byte) error {
+func (w *worker) Stop(jobID job.JobID) error {
 	w.mtx.Lock()
 	defer w.mtx.Unlock()
 
@@ -80,13 +58,10 @@ func (w *worker) Stop(jobID [16]byte) error {
 		return err
 	}
 
-	if !job.Status.Exited {
-		return job.Cmd.Process.Signal(syscall.SIGKILL)
-	}
-	return nil
+	return job.Stop()
 }
 
-func (w *worker) getJob(jobID [16]byte) (*Job, error) {
+func (w *worker) getJob(jobID job.JobID) (job.Job, error) {
 	job, found := w.jobs[jobID]
 	if !found {
 		msg := fmt.Sprintf("Job %v is not found", jobID)
@@ -96,22 +71,22 @@ func (w *worker) getJob(jobID [16]byte) (*Job, error) {
 	return job, nil
 }
 
-func (w *worker) Query(jobID [16]byte) (Status, error) {
+func (w *worker) Query(jobID job.JobID) (job.Status, error) {
 	w.mtx.Lock()
 	job, err := w.getJob(jobID)
 	w.mtx.Unlock()
 	if err != nil {
-		return Status{}, err
+		return *job.GetStatus(), err
 	}
-	return *job.Status, nil
+	return *job.GetStatus(), nil
 }
 
-func (w *worker) Stream(jobID [16]byte) (chan []byte, error) {
+func (w *worker) Stream(jobID job.JobID) (chan []byte, error) {
 	w.mtx.Lock()
 	job, err := w.getJob(jobID)
 	w.mtx.Unlock()
 	if err != nil {
 		return nil, err
 	}
-	return job.Logger.GetStream(), nil
+	return job.GetStream(), nil
 }
