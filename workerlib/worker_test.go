@@ -58,7 +58,7 @@ func TestQueryRunningJob(t *testing.T) {
 	jobID, err := w.Start(job.Command{Name: "sleep", Args: []string{"1"}})
 	assert.Nil(t, err)
 
-	status, err := w.Query(jobID)
+	status, err := w.QueryStatus(jobID)
 	assert.Nil(t, err)
 	assert.False(t, status.Exited)
 	assert.True(t, status.StatusCode == job.RUNNING)
@@ -71,7 +71,7 @@ func TestQueryExitedJob(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	status, err := w.Query(jobID)
+	status, err := w.QueryStatus(jobID)
 	assert.Nil(t, err)
 	assert.True(t, status.Exited)
 	assert.True(t, status.StatusCode == job.EXITED)
@@ -87,7 +87,7 @@ func TestQueryStoppedJob(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	status, err := w.Query(jobID)
+	status, err := w.QueryStatus(jobID)
 	assert.Nil(t, err)
 	assert.False(t, status.Exited)
 	assert.True(t, status.StatusCode == job.STOPPED)
@@ -96,7 +96,7 @@ func TestQueryStoppedJob(t *testing.T) {
 func TestQueryNotExistingJob(t *testing.T) {
 	randomJobID, _ := uuid.NewRandom()
 	w := New()
-	status, err := w.Query(job.JobID(randomJobID))
+	status, err := w.QueryStatus(job.JobID(randomJobID))
 
 	assert.NotNil(t, err)
 	assert.Nil(t, status)

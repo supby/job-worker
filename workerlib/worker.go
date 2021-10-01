@@ -13,7 +13,7 @@ import (
 type Worker interface {
 	Start(command job.Command) (job.JobID, error)
 	Stop(jobID job.JobID) error
-	Query(jobID job.JobID) (*job.Status, error)
+	QueryStatus(jobID job.JobID) (*job.Status, error)
 	Stream(jobID job.JobID) (chan []byte, error)
 }
 
@@ -66,7 +66,7 @@ func (w *worker) getJob(jobID job.JobID) (job.Job, error) {
 	return job, nil
 }
 
-func (w *worker) Query(jobID job.JobID) (*job.Status, error) {
+func (w *worker) QueryStatus(jobID job.JobID) (*job.Status, error) {
 	job, err := w.getJob(jobID)
 	if err != nil {
 		return nil, err

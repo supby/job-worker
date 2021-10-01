@@ -67,6 +67,9 @@ func (j *job) updateJobStatus() {
 		log.Printf("Command execution failed, %v\n", err)
 	}
 
+	j.mtx.Lock()
+	defer j.mtx.Unlock()
+
 	j.status.ExitCode = j.cmd.ProcessState.ExitCode()
 	j.status.Exited = j.cmd.ProcessState.Exited()
 	if j.status.StatusCode != STOPPED {
