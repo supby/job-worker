@@ -46,9 +46,11 @@ func StartNew(command Command) (Job, error) {
 	job.status.StatusCode = STARTED
 
 	if err := cmd.Start(); err != nil {
+		// TODO: Error here ccould be reflected on Job status with new ERROR status.
 		return nil, err
 	}
 
+	// TODO: here is a bit artificial case when job STARTED initially and RUNNING after cmd.Start
 	job.status.StatusCode = RUNNING
 
 	go job.updateJobStatus()
