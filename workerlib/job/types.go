@@ -10,6 +10,8 @@ const (
 
 type JobID [16]byte
 
+var Nil JobID // empty UUID, all zeros
+
 type Command struct {
 	Name string
 	Args []string

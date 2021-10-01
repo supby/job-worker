@@ -28,31 +28,22 @@ type worker struct {
 }
 
 func (w *worker) Start(command job.Command) (job.JobID, error) {
-	job, err := job.New()
-	if err != nil {
-		log.Printf("Job creation failed, %v\n", err)
-		return job.GetID(), err
-	}
-
-	err = job.Start(command)
+	j, err := job.StartNew(command)
 	if err != nil {
 		log.Printf("Job staring failed, %v\n", err)
-		return job.GetID(), err
+		return job.Nil, err
 	}
 
-	jobID := job.GetID()
+	jobID := j.GetID()
 
 	w.mtx.Lock()
-	w.jobs[jobID] = job
+	w.jobs[jobID] = j
 	w.mtx.Unlock()
 
 	return jobID, nil
 }
 
 func (w *worker) Stop(jobID job.JobID) error {
-	w.mtx.Lock()
-	defer w.mtx.Unlock()
-
 	job, err := w.getJob(jobID)
 	if err != nil {
 		return err
@@ -62,7 +53,10 @@ func (w *worker) Stop(jobID job.JobID) error {
 }
 
 func (w *worker) getJob(jobID job.JobID) (job.Job, error) {
+	w.mtx.Lock()
 	job, found := w.jobs[jobID]
+	w.mtx.Unlock()
+
 	if !found {
 		msg := fmt.Sprintf("Job %v is not found", jobID)
 		log.Println(msg)
@@ -72,9 +66,7 @@ func (w *worker) getJob(jobID job.JobID) (job.Job, error) {
 }
 
 func (w *worker) Query(jobID job.JobID) (*job.Status, error) {
-	w.mtx.Lock()
 	job, err := w.getJob(jobID)
-	w.mtx.Unlock()
 	if err != nil {
 		return nil, err
 	}
@@ -82,9 +74,7 @@ func (w *worker) Query(jobID job.JobID) (*job.Status, error) {
 }
 
 func (w *worker) Stream(jobID job.JobID) (chan []byte, error) {
-	w.mtx.Lock()
 	job, err := w.getJob(jobID)
-	w.mtx.Unlock()
 	if err != nil {
 		return nil, err
 	}

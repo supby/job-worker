@@ -3,6 +3,7 @@ package job
 import (
 	"log"
 	"os/exec"
+	"sync"
 	"syscall"
 
 	"github.com/google/uuid"
@@ -11,7 +12,6 @@ import (
 
 type Job interface {
 	GetID() JobID
-	Start(cmd Command) error
 	Stop() error
 	GetStatus() *Status
 	GetStream() chan []byte
@@ -22,43 +22,41 @@ type job struct {
 	cmd    *exec.Cmd
 	status *Status
 	logger joblogger.JobLogger
+	mtx    sync.Mutex
 }
 
-func New() (Job, error) {
+func StartNew(command Command) (Job, error) {
 	jobID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
 	}
 
-	return &job{
+	job := job{
 		id:     JobID(jobID),
 		status: &Status{},
 		logger: joblogger.New(),
-	}, nil
+	}
+
+	cmd := exec.Command(command.Name, command.Args...)
+	cmd.Stdout = job.logger
+	cmd.Stderr = job.logger
+
+	job.cmd = cmd
+	job.status.StatusCode = STARTED
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+
+	job.status.StatusCode = RUNNING
+
+	go job.updateJobStatus()
+
+	return &job, nil
 }
 
 func (j *job) GetID() JobID {
 	return j.id
-}
-
-func (j *job) Start(command Command) error {
-	cmd := exec.Command(command.Name, command.Args...)
-	cmd.Stdout = j.logger
-	cmd.Stderr = j.logger
-
-	j.cmd = cmd
-
-	j.status.StatusCode = STARTED
-
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-
-	j.status.StatusCode = RUNNING
-
-	go j.updateJobStatus()
-
-	return nil
 }
 
 func (j *job) updateJobStatus() {
@@ -74,6 +72,9 @@ func (j *job) updateJobStatus() {
 }
 
 func (j *job) Stop() error {
+	j.mtx.Lock()
+	defer j.mtx.Unlock()
+
 	if !j.status.Exited {
 		j.status.StatusCode = STOPPED
 		return j.cmd.Process.Signal(syscall.SIGKILL)
