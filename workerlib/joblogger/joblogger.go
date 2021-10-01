@@ -18,7 +18,6 @@ type jobLogger struct {
 }
 
 func (jl *jobLogger) Write(p []byte) (n int, err error) {
-
 	// TODO: in case if channel is full it takes out one item to free space. Just for test task purposes.
 	if len(jl.outchan) == cap(jl.outchan) {
 		<-jl.outchan

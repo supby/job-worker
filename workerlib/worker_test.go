@@ -101,3 +101,25 @@ func TestQueryNotExistingJob(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Nil(t, status)
 }
+
+func TestStreamExistingJob(t *testing.T) {
+	w := New()
+	jobID, err := w.Start(job.Command{Name: "bash", Args: []string{"-c", "while true; do date; sleep 1; done"}})
+	assert.Nil(t, err)
+
+	outchan, err := w.Stream(jobID)
+	assert.Nil(t, err)
+	assert.NotNil(t, <-outchan)
+
+	err = w.Stop(jobID)
+	assert.Nil(t, err)
+}
+
+func TestStreamNotExistingJob(t *testing.T) {
+	randomJobID, _ := uuid.NewRandom()
+	w := New()
+	outchan, err := w.Stream(job.JobID(randomJobID))
+
+	assert.Nil(t, outchan)
+	assert.Error(t, err)
+}
