@@ -10,6 +10,7 @@ import (
 	"github.com/supby/job-worker/workerlib/joblogger"
 )
 
+// Job interface encapsulate logic for one job.
 type Job interface {
 	GetID() JobID
 	Stop() error

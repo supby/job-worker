@@ -9,6 +9,7 @@ import (
 	"github.com/supby/job-worker/workerlib/job"
 )
 
+// Worker interface resposible for jobs managing
 type Worker interface {
 	Start(command job.Command) (job.JobID, error)
 	Stop(jobID job.JobID) error

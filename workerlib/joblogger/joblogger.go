@@ -1,5 +1,6 @@
 package joblogger
 
+// Simple In-Memory Job logger for testing purposes
 type JobLogger interface {
 	Write(p []byte) (n int, err error)
 	GetStream() chan []byte
