@@ -3,12 +3,13 @@ package joblogger
 type JobLogger interface {
 	Write(p []byte) (n int, err error)
 	GetStream() chan []byte
+	Dispose()
 }
 
 func New() JobLogger {
-	// TODO: channel is buffered as it is in memory store.
+	// TODO: channel size is harcoded here as it is POC in-memory logger.
 	return &jobLogger{
-		outchan: make(chan []byte, 128),
+		outchan: make(chan []byte, 20),
 	}
 }
 
@@ -17,6 +18,12 @@ type jobLogger struct {
 }
 
 func (jl *jobLogger) Write(p []byte) (n int, err error) {
+
+	// TODO: in case if channel is full it takes out one item to free space. Just for test task purposes.
+	if len(jl.outchan) == cap(jl.outchan) {
+		<-jl.outchan
+	}
+
 	jl.outchan <- p
 
 	return len(p), nil
@@ -26,6 +33,6 @@ func (jl *jobLogger) GetStream() chan []byte {
 	return jl.outchan
 }
 
-func (jl *jobLogger) dispose() {
+func (jl *jobLogger) Dispose() {
 	close(jl.outchan)
 }
