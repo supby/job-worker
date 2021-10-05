@@ -21,10 +21,11 @@ func main() {
 	// })
 	jobID, _ := w.Start(job.Command{
 		Name: "seq",
-		Args: []string{"80000"},
+		Args: []string{"100"},
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	outchan, _ := w.GetStream(ctx, jobID)
 
@@ -36,7 +37,6 @@ func main() {
 		select {
 		case <-sigCh:
 			log.Println("Exiting application...")
-			cancel()
 			return
 		case d := <-outchan:
 			log.Println(string(d))
