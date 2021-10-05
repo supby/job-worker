@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -14,12 +15,18 @@ func main() {
 	w := workerlib.New()
 
 	// Example of streaming
+	// jobID, _ := w.Start(job.Command{
+	// 	Name: "cat",
+	// 	Args: []string{"/dev/random"},
+	// })
 	jobID, _ := w.Start(job.Command{
-		Name: "cat",
-		Args: []string{"/dev/random"},
+		Name: "seq",
+		Args: []string{"80000"},
 	})
 
-	outchan, _ := w.Stream(jobID)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	outchan, _ := w.GetStream(ctx, jobID)
 
 	sigCh := make(chan os.Signal, 1)
 	defer close(sigCh)
@@ -29,6 +36,7 @@ func main() {
 		select {
 		case <-sigCh:
 			log.Println("Exiting application...")
+			cancel()
 			return
 		case d := <-outchan:
 			log.Println(string(d))

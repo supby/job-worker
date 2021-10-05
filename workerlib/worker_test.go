@@ -1,6 +1,7 @@
 package workerlib
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -107,7 +108,7 @@ func TestStreamExistingJob(t *testing.T) {
 	jobID, err := w.Start(job.Command{Name: "bash", Args: []string{"-c", "while true; do date; sleep 1; done"}})
 	assert.Nil(t, err)
 
-	outchan, err := w.Stream(jobID)
+	outchan, err := w.GetStream(context.Background(), jobID)
 	assert.Nil(t, err)
 	assert.NotNil(t, <-outchan)
 
@@ -118,7 +119,7 @@ func TestStreamExistingJob(t *testing.T) {
 func TestStreamNotExistingJob(t *testing.T) {
 	randomJobID, _ := uuid.NewRandom()
 	w := New()
-	outchan, err := w.Stream(job.JobID(randomJobID))
+	outchan, err := w.GetStream(context.Background(), job.JobID(randomJobID))
 
 	assert.Nil(t, outchan)
 	assert.Error(t, err)

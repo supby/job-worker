@@ -1,6 +1,7 @@
 package job
 
 import (
+	"context"
 	"log"
 	"os/exec"
 	"sync"
@@ -15,7 +16,7 @@ type Job interface {
 	GetID() JobID
 	Stop() error
 	GetStatus() *Status
-	GetStream() chan []byte
+	GetStream(ctx context.Context) chan []byte
 }
 
 type job struct {
@@ -94,6 +95,6 @@ func (j *job) GetStatus() *Status {
 	return j.status
 }
 
-func (j *job) GetStream() chan []byte {
-	return j.logger.GetStream()
+func (j *job) GetStream(ctx context.Context) chan []byte {
+	return j.logger.GetStream(ctx)
 }

@@ -1,6 +1,7 @@
 package workerlib
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -14,7 +15,7 @@ type Worker interface {
 	Start(command job.Command) (job.JobID, error)
 	Stop(jobID job.JobID) error
 	QueryStatus(jobID job.JobID) (*job.Status, error)
-	Stream(jobID job.JobID) (chan []byte, error)
+	GetStream(ctx context.Context, jobID job.JobID) (chan []byte, error)
 }
 
 func New() Worker {
@@ -74,10 +75,10 @@ func (w *worker) QueryStatus(jobID job.JobID) (*job.Status, error) {
 	return job.GetStatus(), nil
 }
 
-func (w *worker) Stream(jobID job.JobID) (chan []byte, error) {
+func (w *worker) GetStream(ctx context.Context, jobID job.JobID) (chan []byte, error) {
 	job, err := w.getJob(jobID)
 	if err != nil {
 		return nil, err
 	}
-	return job.GetStream(), nil
+	return job.GetStream(ctx), nil
 }
