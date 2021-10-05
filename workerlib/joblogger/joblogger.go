@@ -15,14 +15,14 @@ type JobLogger interface {
 func New() JobLogger {
 	return &jobLogger{
 		buf:      make([][]byte, 0),
-		writesig: make(chan bool),
+		writesig: make(chan int, 1),
 	}
 }
 
 type jobLogger struct {
 	buf      [][]byte
 	mtx      sync.Mutex
-	writesig chan bool
+	writesig chan int
 }
 
 func (jl *jobLogger) Write(p []byte) (n int, err error) {
@@ -31,7 +31,7 @@ func (jl *jobLogger) Write(p []byte) (n int, err error) {
 	jl.mtx.Unlock()
 
 	select {
-	case jl.writesig <- true:
+	case jl.writesig <- 1:
 	default:
 	}
 

@@ -108,7 +108,10 @@ func TestStreamExistingJob(t *testing.T) {
 	jobID, err := w.Start(job.Command{Name: "bash", Args: []string{"-c", "while true; do date; sleep 1; done"}})
 	assert.Nil(t, err)
 
-	outchan, err := w.GetStream(context.Background(), jobID)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	outchan, err := w.GetStream(ctx, jobID)
 	assert.Nil(t, err)
 	assert.NotNil(t, <-outchan)
 
