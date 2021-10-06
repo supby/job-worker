@@ -75,7 +75,6 @@ func (j *job) updateJobStatus() {
 	j.status.Exited = j.cmd.ProcessState.Exited()
 	if j.status.StatusCode != STOPPED {
 		j.status.StatusCode = EXITED
-		j.logger.Dispose()
 	}
 }
 
@@ -85,7 +84,6 @@ func (j *job) Stop() error {
 
 	if !j.status.Exited {
 		j.status.StatusCode = STOPPED
-		j.logger.Dispose()
 		return j.cmd.Process.Signal(syscall.SIGKILL)
 	}
 	return nil
