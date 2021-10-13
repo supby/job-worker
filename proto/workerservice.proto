@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package workerservice;
 
-option go_package = "github.com/supby/job-worker/api";
+option go_package = "github.com/supby/job-worker/api/workerservicepb";
 
 message StartRequest {
     string commandName = 1;
