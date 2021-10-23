@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 
 	"github.com/supby/job-worker/workerlib"
@@ -56,37 +57,26 @@ func createServer(config Configuration, cred credentials.TransportCredentials) (
 	return grpcServer, lis, nil
 }
 
-func StartServerTLS(config Configuration) error {
+func StartServer(config Configuration) error {
 	cred, err := loadTLSCredentials(config)
 	if err != nil {
+		log.Printf("Error loading certificates: %v.\n", err)
 		return err
 	}
+	log.Println("Certificates are loaded.")
+
 	serv, lis, err := createServer(config, cred)
 	if err != nil {
+		log.Printf("Error creating server: %v.\n", err)
 		return err
 	}
 	defer lis.Close()
+	log.Println("Listening server is created.")
+
+	log.Printf("Start serving on %v.\n", config.Endpoint)
 	if err := serv.Serve(lis); err != nil {
+		log.Printf("Error serving: %v.\n", err)
 		return err
 	}
-	return nil
-}
-
-func StartServer(config Configuration) error {
-	lis, err := net.Listen("tcp", config.Endpoint)
-	defer lis.Close()
-
-	if err != nil {
-		return err
-	}
-
-	grpcServer := grpc.NewServer()
-
-	workerservicepb.RegisterWorkerServiceServer(grpcServer, &workerServer{
-		Worker: workerlib.New(),
-	})
-
-	grpcServer.Serve(lis)
-
 	return nil
 }
