@@ -56,7 +56,7 @@ func createServer(config Configuration, cred credentials.TransportCredentials) (
 	return grpcServer, lis, nil
 }
 
-func StartServer(config Configuration) error {
+func StartServerTLS(config Configuration) error {
 	cred, err := loadTLSCredentials(config)
 	if err != nil {
 		return err
@@ -69,5 +69,24 @@ func StartServer(config Configuration) error {
 	if err := serv.Serve(lis); err != nil {
 		return err
 	}
+	return nil
+}
+
+func StartServer(config Configuration) error {
+	lis, err := net.Listen("tcp", config.Endpoint)
+	defer lis.Close()
+
+	if err != nil {
+		return err
+	}
+
+	grpcServer := grpc.NewServer()
+
+	workerservicepb.RegisterWorkerServiceServer(grpcServer, &workerServer{
+		Worker: workerlib.New(),
+	})
+
+	grpcServer.Serve(lis)
+
 	return nil
 }

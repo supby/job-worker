@@ -13,12 +13,14 @@ type JobID [16]byte
 var Nil JobID // empty UUID, all zeros
 
 type Command struct {
-	Name string
-	Args []string
+	Name      string
+	Arguments []string
 }
 
 type Status struct {
-	ExitCode   int
-	Exited     bool
-	StatusCode byte
+	ExitCode    int
+	Exited      bool
+	StatusCode  byte
+	CommandName string
+	Arguments   []string
 }

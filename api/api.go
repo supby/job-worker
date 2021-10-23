@@ -16,18 +16,20 @@ type workerServer struct {
 }
 
 func (s *workerServer) Start(ctx context.Context, r *workerservicepb.StartRequest) (*workerservicepb.StartResponse, error) {
-	jobID, err := s.Worker.Start(job.Command{Name: r.CommandName, Args: r.Arguments})
+	jobID, err := s.Worker.Start(job.Command{Name: r.CommandName, Arguments: r.Arguments})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	res := workerservicepb.StartResponse{
-		JobID: jobID,
+		JobID: jobID[:],
 	}
 	return &res, nil
 }
 
 func (s *workerServer) Stop(ctx context.Context, r *workerservicepb.StopRequest) (*workerservicepb.StopResponse, error) {
-	err := s.Worker.Stop(r.JobID)
+	var jobID [16]byte
+	copy(jobID[:], r.JobID)
+	err := s.Worker.Stop(jobID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -35,19 +37,25 @@ func (s *workerServer) Stop(ctx context.Context, r *workerservicepb.StopRequest)
 }
 
 func (s *workerServer) QueryStatus(ctx context.Context, r *workerservicepb.QueryStatusRequest) (*workerservicepb.QueryStatusResponse, error) {
-	jobstatus, err := s.Worker.QueryStatus(r.JobID)
+	var jobID [16]byte
+	copy(jobID[:], r.JobID)
+	jobstatus, err := s.Worker.QueryStatus(jobID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	res := workerservicepb.QueryStatusResponse{
-		ExitCode: int32(jobstatus.ExitCode),
-		Exited:   jobstatus.Exited,
+		ExitCode:    int32(jobstatus.ExitCode),
+		JobStatus:   workerservicepb.JobStatus(jobstatus.StatusCode),
+		CommandName: jobstatus.CommandName,
+		Arguments:   jobstatus.Arguments,
 	}
 	return &res, nil
 }
 
 func (s *workerServer) GetOutput(r *workerservicepb.GetOutputRequest, stream workerservicepb.WorkerService_GetOutputServer) error {
-	logchan, err := s.Worker.GetStream(stream.Context(), r.JobID)
+	var jobID [16]byte
+	copy(jobID[:], r.JobID)
+	logchan, err := s.Worker.GetStream(stream.Context(), jobID)
 	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}

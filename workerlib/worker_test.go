@@ -12,7 +12,7 @@ import (
 
 func TestStartExistingCommand(t *testing.T) {
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "ls", Args: []string{"-a"}})
+	jobID, err := w.Start(job.Command{Name: "ls", Arguments: []string{"-a"}})
 
 	assert.NotEmpty(t, jobID)
 	assert.Nil(t, err)
@@ -36,7 +36,7 @@ func TestStopNotExistingJob(t *testing.T) {
 
 func TestStopExistingJob(t *testing.T) {
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Args: []string{"2"}})
+	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"2"}})
 	assert.Nil(t, err)
 
 	err = w.Stop(jobID)
@@ -45,7 +45,7 @@ func TestStopExistingJob(t *testing.T) {
 
 func TestStopExitedJob(t *testing.T) {
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Args: []string{"1"}})
+	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"1"}})
 	assert.NoError(t, err)
 
 	time.Sleep(time.Second * 2)
@@ -56,7 +56,7 @@ func TestStopExitedJob(t *testing.T) {
 
 func TestQueryRunningJob(t *testing.T) {
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Args: []string{"1"}})
+	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"1"}})
 	assert.Nil(t, err)
 
 	status, err := w.QueryStatus(jobID)
@@ -67,7 +67,7 @@ func TestQueryRunningJob(t *testing.T) {
 
 func TestQueryExitedJob(t *testing.T) {
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Args: []string{"1"}})
+	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"1"}})
 	assert.Nil(t, err)
 
 	time.Sleep(time.Second * 2)
@@ -80,7 +80,7 @@ func TestQueryExitedJob(t *testing.T) {
 
 func TestQueryStoppedJob(t *testing.T) {
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Args: []string{"1"}})
+	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"1"}})
 	assert.Nil(t, err)
 
 	err = w.Stop(jobID)
@@ -105,7 +105,7 @@ func TestQueryNotExistingJob(t *testing.T) {
 
 func TestStreamExistingJob(t *testing.T) {
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "bash", Args: []string{"-c", "while true; do date; sleep 1; done"}})
+	jobID, err := w.Start(job.Command{Name: "bash", Arguments: []string{"-c", "while true; do date; sleep 1; done"}})
 	assert.Nil(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
