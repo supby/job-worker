@@ -15,7 +15,7 @@ import (
 func main() {
 
 	err := api.StartServer(api.Configuration{
-		Endpoint: ":5001",
+		Endpoint: "localhost:5001",
 	})
 	if err != nil {
 		log.Fatalf("fail to start server, %v", err)

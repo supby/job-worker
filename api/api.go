@@ -27,8 +27,7 @@ func (s *workerServer) Start(ctx context.Context, r *workerservicepb.StartReques
 }
 
 func (s *workerServer) Stop(ctx context.Context, r *workerservicepb.StopRequest) (*workerservicepb.StopResponse, error) {
-	var jobID [16]byte
-	copy(jobID[:], r.JobID)
+	jobID := s.getJobID(r.JobID)
 	err := s.Worker.Stop(jobID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -36,9 +35,14 @@ func (s *workerServer) Stop(ctx context.Context, r *workerservicepb.StopRequest)
 	return &workerservicepb.StopResponse{}, nil
 }
 
-func (s *workerServer) QueryStatus(ctx context.Context, r *workerservicepb.QueryStatusRequest) (*workerservicepb.QueryStatusResponse, error) {
+func (*workerServer) getJobID(j []byte) [16]byte {
 	var jobID [16]byte
-	copy(jobID[:], r.JobID)
+	copy(jobID[:], j)
+	return jobID
+}
+
+func (s *workerServer) QueryStatus(ctx context.Context, r *workerservicepb.QueryStatusRequest) (*workerservicepb.QueryStatusResponse, error) {
+	jobID := s.getJobID(r.JobID)
 	jobstatus, err := s.Worker.QueryStatus(jobID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -53,8 +57,7 @@ func (s *workerServer) QueryStatus(ctx context.Context, r *workerservicepb.Query
 }
 
 func (s *workerServer) GetOutput(r *workerservicepb.GetOutputRequest, stream workerservicepb.WorkerService_GetOutputServer) error {
-	var jobID [16]byte
-	copy(jobID[:], r.JobID)
+	jobID := s.getJobID(r.JobID)
 	logchan, err := s.Worker.GetStream(stream.Context(), jobID)
 	if err != nil {
 		return status.Error(codes.Internal, err.Error())
