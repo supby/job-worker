@@ -7,27 +7,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/supby/job-worker/api"
 	"github.com/supby/job-worker/workerlib"
 	"github.com/supby/job-worker/workerlib/job"
 )
 
 func main() {
 
-	err := api.StartServer(api.Configuration{
-		Endpoint: "localhost:5001",
-	})
-	if err != nil {
-		log.Fatalf("fail to start server, %v", err)
-	}
-
-	// shouldReturn := startStreamin()
-	// if shouldReturn {
-	// 	return
-	// }
-}
-
-func startStreamin() bool {
 	w := workerlib.New()
 
 	jobID, _ := w.Start(job.Command{
@@ -48,10 +33,9 @@ func startStreamin() bool {
 		select {
 		case <-sigCh:
 			log.Println("Exiting application...")
-			return true
+			return
 		case d := <-outchan:
 			log.Println(string(d))
 		}
 	}
-	return false
 }
