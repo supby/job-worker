@@ -34,12 +34,15 @@ func StartNew(command Command) (Job, error) {
 	}
 
 	job := job{
-		id:     JobID(jobID),
-		status: &Status{},
+		id: JobID(jobID),
+		status: &Status{
+			CommandName: command.Name,
+			Arguments:   command.Arguments,
+		},
 		logger: joblogger.New(),
 	}
 
-	cmd := exec.Command(command.Name, command.Args...)
+	cmd := exec.Command(command.Name, command.Arguments...)
 	cmd.Stdout = job.logger
 	cmd.Stderr = job.logger
 

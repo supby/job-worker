@@ -12,23 +12,12 @@ import (
 )
 
 func main() {
+
 	w := workerlib.New()
 
-	// Example of streaming
-
-	// jobID, _ := w.Start(job.Command{
-	// 	Name: "cat",
-	// 	Args: []string{"/dev/random"},
-	// })
-
-	// jobID, _ := w.Start(job.Command{
-	// 	Name: "seq",
-	// 	Args: []string{"1000000"},
-	// })
-
 	jobID, _ := w.Start(job.Command{
-		Name: "bash",
-		Args: []string{"-c", "while true; do date; sleep 1; done"},
+		Name:      "bash",
+		Arguments: []string{"-c", "while true; do date; sleep 1; done"},
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
