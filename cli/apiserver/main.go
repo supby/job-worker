@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	// TODO: move to config
 	err := api.StartServer(api.Configuration{
 		Endpoint:              "localhost:5001",
 		CAFile:                "./cert/rootCA.pem",

@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	workerservicepb "github.com/supby/job-worker/api/proto"
+	workerservicepb "github.com/supby/job-worker/generated/proto"
 )
 
 func loadTLSCredentials(conf Configuration) (credentials.TransportCredentials, error) {

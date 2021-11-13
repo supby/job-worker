@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 
-	workerservicepb "github.com/supby/job-worker/api/proto"
+	workerservicepb "github.com/supby/job-worker/generated/proto"
 	"github.com/supby/job-worker/workerlib"
 	"github.com/supby/job-worker/workerlib/job"
 	"google.golang.org/grpc/codes"
