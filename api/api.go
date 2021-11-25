@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"log"
 
 	workerservicepb "github.com/supby/job-worker/generated/proto"
 	"github.com/supby/job-worker/workerlib"
@@ -23,6 +24,8 @@ func (s *workerServer) Start(ctx context.Context, r *workerservicepb.StartReques
 	res := workerservicepb.StartResponse{
 		JobID: jobID[:],
 	}
+	log.Printf("JobID: %v started", res.JobID)
+
 	return &res, nil
 }
 
