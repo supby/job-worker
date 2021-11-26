@@ -38,60 +38,79 @@ func main() {
 
 	switch parameters.CLICommand {
 	case argsparser.START_COMMAND:
-		resp, err := wsclient.Start(ctx, &proto.StartRequest{
-			CommandName: parameters.CommandName,
-			Arguments:   parameters.Arguments,
-		})
-		if err != nil {
-			log.Fatalf("Error start command %v", err)
-		}
-
-		log.Printf("Started JobID: %x\n", resp.GetJobID())
-		break
+		handleStartCommand(ctx, wsclient, parameters)
 	case argsparser.STOP_COMMAND:
-
-		resp, err := wsclient.Stop(ctx, &proto.StopRequest{})
-		if err != nil {
-			log.Fatalf("Error Stop command %v", err)
-		}
-
-		log.Printf("Stop Resp: %v", resp)
-		break
+		handleStopCommand(ctx, wsclient, parameters)
 	case argsparser.QUERY_COMMAND:
-		//wsclient.QueryStatus()
-		break
+		handleQueryCommand(ctx, wsclient, parameters)
 	case argsparser.STREAM_COMMAND:
-		jobID, err := hex.DecodeString(parameters.JobID)
-		if err != nil {
-			log.Fatalf("Error parse JobID: %v", err)
-		}
-		ctx, cancel := context.WithCancel(pctx)
-		resp, err := wsclient.GetOutput(ctx, &proto.GetOutputRequest{
-			JobID: jobID,
-		})
-		if err != nil {
-			log.Fatalf("Error stream: %v", err)
-		}
-
-		go func() {
-			log.Println("Job output stream:")
-			for {
-				out, err := resp.Recv()
-				if err != nil {
-					return
-				}
-				fmt.Print(out.String())
-			}
-		}()
-
-		sigchan := make(chan os.Signal, 1)
-		signal.Notify(sigchan, os.Interrupt)
-		defer func() {
-			cancel()
-			signal.Stop(sigchan)
-		}()
-		<-sigchan
-
-		break
+		handleStreamCommand(pctx, wsclient, parameters)
 	}
+}
+
+func handleQueryCommand(ctx context.Context, wsclient proto.WorkerServiceClient, parameters *argsparser.Parameters) {
+	jobID, _ := hex.DecodeString(parameters.JobID)
+	resp, err := wsclient.QueryStatus(ctx, &proto.QueryStatusRequest{
+		JobID: jobID,
+	})
+	if err != nil {
+		log.Fatalf("Error QueryStatus command %v", err)
+	}
+
+	log.Printf("QueryStatus Resp: %v", resp)
+}
+
+func handleStreamCommand(ctx context.Context, wsclient proto.WorkerServiceClient, parameters *argsparser.Parameters) {
+	jobID, _ := hex.DecodeString(parameters.JobID)
+
+	ctx, cancel := context.WithCancel(ctx)
+	resp, err := wsclient.GetOutput(ctx, &proto.GetOutputRequest{
+		JobID: jobID,
+	})
+	if err != nil {
+		log.Fatalf("Error stream: %v", err)
+	}
+
+	go func() {
+		log.Println("Job output stream:")
+		for {
+			out, err := resp.Recv()
+			if err != nil {
+				log.Printf("Error stream: %v", err)
+			}
+			fmt.Print(string(out.Output))
+		}
+	}()
+
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, os.Interrupt)
+	defer func() {
+		cancel()
+		signal.Stop(sigchan)
+	}()
+	<-sigchan
+}
+
+func handleStopCommand(ctx context.Context, wsclient proto.WorkerServiceClient, parameters *argsparser.Parameters) {
+	jobID, _ := hex.DecodeString(parameters.JobID)
+	resp, err := wsclient.Stop(ctx, &proto.StopRequest{
+		JobID: jobID,
+	})
+	if err != nil {
+		log.Fatalf("Error Stop command %v", err)
+	}
+
+	log.Printf("Stop Resp: %v", resp)
+}
+
+func handleStartCommand(ctx context.Context, wsclient proto.WorkerServiceClient, parameters *argsparser.Parameters) {
+	resp, err := wsclient.Start(ctx, &proto.StartRequest{
+		CommandName: parameters.CommandName,
+		Arguments:   parameters.Arguments,
+	})
+	if err != nil {
+		log.Fatalf("Error start command %v", err)
+	}
+
+	log.Printf("Started JobID: %x\n", resp.GetJobID())
 }
