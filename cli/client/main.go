@@ -34,7 +34,8 @@ func main() {
 	}
 
 	pctx := context.Background()
-	ctx, _ := context.WithTimeout(pctx, time.Duration(1000)*time.Millisecond)
+	ctx, cancel := context.WithTimeout(pctx, time.Duration(1000)*time.Millisecond)
+	defer cancel()
 
 	switch parameters.CLICommand {
 	case argsparser.START_COMMAND:
