@@ -19,8 +19,8 @@ func main() {
 	cfg := client.Configuration{
 		ServerEndpoint:        "localhost:5001",
 		CAFile:                "./cert/rootCA.pem",
-		ClientCertificateFile: "./cert/server.crt",
-		ClientKeyFile:         "./cert/server.key",
+		ClientCertificateFile: "./cert/client.crt",
+		ClientKeyFile:         "./cert/client.key",
 	}
 
 	parameters, err := argsparser.GetParams(os.Args[1:])

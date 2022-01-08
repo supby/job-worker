@@ -22,3 +22,5 @@ generated/
 *.pem
 *.crt
 *.csr
+*.srl
+*.cnf
