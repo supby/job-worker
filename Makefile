@@ -8,4 +8,6 @@ client:
 	go build -o ./bin/client-cli cli/client/main.go
 	
 proto:
-	protoc --go_out=api --go_opt=paths=source_relative --go-grpc_out=api --go-grpc_opt=paths=source_relative proto/workerservice.proto
+	rm -rf generated \
+	&& mkdir generated \
+	&& protoc --go_out=generated --go_opt=paths=source_relative --go-grpc_out=generated --go-grpc_opt=paths=source_relative proto/workerservice.proto

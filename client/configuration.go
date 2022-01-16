@@ -1,4 +1,4 @@
-package api
+package client
 
 import (
 	"log"
@@ -8,10 +8,10 @@ import (
 )
 
 type Configuration struct {
-	Endpoint              string
+	ServerEndpoint        string
 	CAFile                string
-	ServerCertificateFile string
-	ServerKeyFile         string
+	ClientCertificateFile string
+	ClientKeyFile         string
 }
 
 func LoadConfigFromYaml(filename string) Configuration {
@@ -29,9 +29,8 @@ func LoadConfigFromYaml(filename string) Configuration {
 		log.Fatalf("error loading YAML config: %v", err)
 	}
 
-	if cfg.Endpoint == "" {
-		log.Println("Endpoint is empty in configuration, using default 127.0.0.1:5001")
-		cfg.Endpoint = "127.0.0.1:5001"
+	if cfg.ServerEndpoint == "" {
+		log.Fatal("Server Endpoint is empty")
 	}
 
 	return cfg

@@ -16,3 +16,11 @@
 job-worker
 
 bin/
+generated/
+
+*.key
+*.pem
+*.crt
+*.csr
+*.srl
+*.cnf

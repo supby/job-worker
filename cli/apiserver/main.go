@@ -7,12 +7,8 @@ import (
 )
 
 func main() {
-	err := api.StartServer(api.Configuration{
-		Endpoint:              "localhost:5001",
-		CAFile:                "./cert/rootCA.pem",
-		ServerCertificateFile: "./cert/server.crt",
-		ServerKeyFile:         "./cert/server.key",
-	})
+	cfg := api.LoadConfigFromYaml("./server_config.yaml")
+	err := api.StartServer(cfg)
 	if err != nil {
 		log.Fatalf("fail to start server, %v", err)
 	}
