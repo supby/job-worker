@@ -36,14 +36,16 @@ func loadTLSCredentials(config Configuration) (credentials.TransportCredentials,
 }
 
 func NewWorkerClient(config Configuration) (proto.WorkerServiceClient, error) {
-	tlsCredentials, err := loadTLSCredentials(config)
-	if err != nil {
-		return nil, err
+	dialOptions := grpc.WithInsecure()
+	if config.CAFile != "" && config.ClientCertificateFile != "" && config.ClientKeyFile != "" {
+		transportCredentials, err := loadTLSCredentials(config)
+		if err != nil {
+			return nil, err
+		}
+		dialOptions = grpc.WithTransportCredentials(transportCredentials)
 	}
-	conn, err := grpc.Dial(
-		config.ServerEndpoint,
-		grpc.WithTransportCredentials(tlsCredentials),
-	)
+
+	conn, err := grpc.Dial(config.ServerEndpoint, dialOptions)
 	if err != nil {
 		return nil, err
 	}

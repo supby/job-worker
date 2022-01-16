@@ -15,13 +15,7 @@ import (
 )
 
 func main() {
-	// TODO: move it to config
-	cfg := client.Configuration{
-		ServerEndpoint:        "localhost:5001",
-		CAFile:                "./cert/rootCA.pem",
-		ClientCertificateFile: "./cert/client.crt",
-		ClientKeyFile:         "./cert/client.key",
-	}
+	cfg := client.LoadConfigFromYaml("./client_config.yaml")
 
 	parameters, err := argsparser.GetParams(os.Args[1:])
 	if err != nil {

@@ -1,0 +1,4 @@
+endpoint: "localhost:5001"
+cafile: "./cert/rootCA.pem"
+servercertificatefile: "./cert/server.crt"
+serverkeyfile: "./cert/server.key"
