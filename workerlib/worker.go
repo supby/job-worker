@@ -2,7 +2,6 @@ package workerlib
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -10,37 +9,31 @@ import (
 	"github.com/supby/job-worker/workerlib/job"
 )
 
-// Worker interface resposible for jobs managing
+// Worker interface responsible for jobs managing
 type Worker interface {
 	Start(command job.Command) (job.JobID, error)
 	Stop(jobID job.JobID) error
 	QueryStatus(jobID job.JobID) (*job.Status, error)
-	GetStream(ctx context.Context, jobID job.JobID) (chan []byte, error)
-}
-
-func New() Worker {
-	return &worker{
-		jobs: make(map[job.JobID]job.Job),
-	}
+	GetStream(ctx context.Context, jobID job.JobID) (<-chan []byte, error)
 }
 
 type worker struct {
-	jobs map[job.JobID]job.Job
-	mtx  sync.Mutex
+	jobs sync.Map
+}
+
+func New() Worker {
+	return &worker{}
 }
 
 func (w *worker) Start(command job.Command) (job.JobID, error) {
 	j, err := job.StartNew(command)
 	if err != nil {
-		log.Printf("Job staring failed, %v\n", err)
-		return job.Nil, err
+		log.Printf("Job starting failed: %v", err)
+		return job.Nil, fmt.Errorf("failed to start job: %w", err)
 	}
 
 	jobID := j.GetID()
-
-	w.mtx.Lock()
-	w.jobs[jobID] = j
-	w.mtx.Unlock()
+	w.jobs.Store(jobID, j)
 
 	return jobID, nil
 }
@@ -55,16 +48,10 @@ func (w *worker) Stop(jobID job.JobID) error {
 }
 
 func (w *worker) getJob(jobID job.JobID) (job.Job, error) {
-	w.mtx.Lock()
-	job, found := w.jobs[jobID]
-	w.mtx.Unlock()
-
-	if !found {
-		msg := fmt.Sprintf("Job %v is not found", jobID)
-		log.Println(msg)
-		return nil, errors.New(msg)
+	if ret, ok := w.jobs.Load(jobID); ok {
+		return ret.(job.Job), nil
 	}
-	return job, nil
+	return nil, fmt.Errorf("job %v not found", jobID)
 }
 
 func (w *worker) QueryStatus(jobID job.JobID) (*job.Status, error) {
@@ -75,7 +62,7 @@ func (w *worker) QueryStatus(jobID job.JobID) (*job.Status, error) {
 	return job.GetStatus(), nil
 }
 
-func (w *worker) GetStream(ctx context.Context, jobID job.JobID) (chan []byte, error) {
+func (w *worker) GetStream(ctx context.Context, jobID job.JobID) (<-chan []byte, error) {
 	job, err := w.getJob(jobID)
 	if err != nil {
 		return nil, err
