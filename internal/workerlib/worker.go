@@ -6,7 +6,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/supby/job-worker/workerlib/job"
+	"github.com/supby/job-worker/internal/workerlib/job"
 )
 
 // Worker interface responsible for jobs managing

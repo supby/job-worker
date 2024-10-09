@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/supby/job-worker/workerlib"
-	"github.com/supby/job-worker/workerlib/job"
+	"github.com/supby/job-worker/internal/workerlib"
+	"github.com/supby/job-worker/internal/workerlib/job"
 )
 
 func main() {

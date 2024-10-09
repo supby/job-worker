@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/supby/job-worker/workerlib/job"
+	"github.com/supby/job-worker/internal/workerlib/job"
 )
 
 func TestStartExistingCommand(t *testing.T) {

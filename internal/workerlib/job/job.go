@@ -5,24 +5,25 @@ import (
 	"log"
 	"os/exec"
 	"sync"
+	"sync/atomic"
 	"syscall"
 
 	"github.com/google/uuid"
-	"github.com/supby/job-worker/workerlib/joblogger"
+	"github.com/supby/job-worker/internal/workerlib/joblogger"
 )
 
-// Job interface encapsulate logic for one job.
+// Job interface encapsulates logic for one job.
 type Job interface {
 	GetID() JobID
 	Stop() error
 	GetStatus() *Status
-	GetStream(ctx context.Context) chan []byte
+	GetStream(ctx context.Context) <-chan []byte
 }
 
 type job struct {
 	id     JobID
 	cmd    *exec.Cmd
-	status *Status
+	status atomic.Value
 	logger joblogger.JobLogger
 	mtx    sync.Mutex
 }
@@ -33,33 +34,39 @@ func StartNew(command Command) (Job, error) {
 		return nil, err
 	}
 
-	job := job{
-		id: JobID(jobID),
-		status: &Status{
-			CommandName: command.Name,
-			Arguments:   command.Arguments,
-		},
+	j := &job{
+		id:     JobID(jobID),
 		logger: joblogger.New(),
 	}
 
-	cmd := exec.Command(command.Name, command.Arguments...)
-	cmd.Stdout = job.logger
-	cmd.Stderr = job.logger
+	status := &Status{
+		CommandName: command.Name,
+		Arguments:   command.Arguments,
+		StatusCode:  STARTED,
+	}
+	j.status.Store(status)
 
-	job.cmd = cmd
-	job.status.StatusCode = STARTED
+	cmd := exec.Command(command.Name, command.Arguments...)
+	cmd.Stdout = j.logger
+	cmd.Stderr = j.logger
+
+	j.cmd = cmd
 
 	if err := cmd.Start(); err != nil {
-		// TODO: Error here ccould be reflected on Job status with new ERROR status.
+		j.updateStatus(func(s *Status) {
+			s.StatusCode = ERROR
+			s.Error = err.Error()
+		})
 		return nil, err
 	}
 
-	// TODO: here is a bit artificial case when job STARTED initially and RUNNING after cmd.Start
-	job.status.StatusCode = RUNNING
+	j.updateStatus(func(s *Status) {
+		s.StatusCode = RUNNING
+	})
 
-	go job.updateJobStatus()
+	go j.updateJobStatus()
 
-	return &job, nil
+	return j, nil
 }
 
 func (j *job) GetID() JobID {
@@ -67,35 +74,48 @@ func (j *job) GetID() JobID {
 }
 
 func (j *job) updateJobStatus() {
-	if err := j.cmd.Wait(); err != nil {
-		log.Printf("Command execution failed, %v\n", err)
-	}
-
-	j.mtx.Lock()
-	defer j.mtx.Unlock()
-
-	j.status.ExitCode = j.cmd.ProcessState.ExitCode()
-	j.status.Exited = j.cmd.ProcessState.Exited()
-	if j.status.StatusCode != STOPPED {
-		j.status.StatusCode = EXITED
-	}
+	err := j.cmd.Wait()
+	j.updateStatus(func(s *Status) {
+		s.ExitCode = j.cmd.ProcessState.ExitCode()
+		s.Exited = j.cmd.ProcessState.Exited()
+		if s.StatusCode != STOPPED {
+			s.StatusCode = EXITED
+		}
+		if err != nil {
+			log.Printf("Command execution failed: %v", err)
+			s.Error = err.Error()
+		}
+	})
 }
 
 func (j *job) Stop() error {
 	j.mtx.Lock()
 	defer j.mtx.Unlock()
 
-	if !j.status.Exited {
-		j.status.StatusCode = STOPPED
+	if !j.cmd.ProcessState.Exited() {
+		j.updateStatus(func(s *Status) {
+			s.StatusCode = STOPPED
+		})
 		return j.cmd.Process.Signal(syscall.SIGKILL)
 	}
 	return nil
 }
 
 func (j *job) GetStatus() *Status {
-	return j.status
+	return j.status.Load().(*Status)
 }
 
-func (j *job) GetStream(ctx context.Context) chan []byte {
+func (j *job) GetStream(ctx context.Context) <-chan []byte {
 	return j.logger.GetStream(ctx)
+}
+
+func (j *job) updateStatus(updateFn func(*Status)) {
+	for {
+		oldStatus := j.status.Load().(*Status)
+		newStatus := *oldStatus // Create a copy
+		updateFn(&newStatus)
+		if j.status.CompareAndSwap(oldStatus, &newStatus) {
+			break
+		}
+	}
 }

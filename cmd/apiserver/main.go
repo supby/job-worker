@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/supby/job-worker/api"
+	"github.com/supby/job-worker/internal/api"
 )
 
 func main() {

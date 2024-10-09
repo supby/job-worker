@@ -2,10 +2,10 @@ test:
 	go test ./...
 
 api:
-	go build -o ./bin/worker-api cli/apiserver/main.go
+	go build -o ./bin/worker-api cmd/apiserver/main.go
 
 client:
-	go build -o ./bin/client-cli cli/client/main.go
+	go build -o ./bin/client-cli cmd/client/main.go
 	
 proto:
 	rm -rf generated \

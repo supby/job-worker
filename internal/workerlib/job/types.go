@@ -6,6 +6,7 @@ const (
 	EXITED  = 2
 	STOPPED = 3
 	STARTED = 4
+	ERROR   = 5
 )
 
 type JobID [16]byte
@@ -23,4 +24,5 @@ type Status struct {
 	StatusCode  byte
 	CommandName string
 	Arguments   []string
+	Error       string
 }

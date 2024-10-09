@@ -5,8 +5,8 @@ import (
 	"log"
 
 	workerservicepb "github.com/supby/job-worker/generated/proto"
-	"github.com/supby/job-worker/workerlib"
-	"github.com/supby/job-worker/workerlib/job"
+	"github.com/supby/job-worker/internal/workerlib"
+	"github.com/supby/job-worker/internal/workerlib/job"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
