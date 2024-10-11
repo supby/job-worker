@@ -34,9 +34,14 @@ func StartNew(command Command) (Job, error) {
 		return nil, err
 	}
 
+	logger, err := joblogger.New()
+	if err != nil {
+		return nil, err
+	}
+
 	j := &job{
 		id:     JobID(jobID),
-		logger: joblogger.New(),
+		logger: logger,
 	}
 
 	status := &Status{
