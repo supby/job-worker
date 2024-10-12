@@ -18,6 +18,7 @@ type Job interface {
 	Stop() error
 	GetStatus() *Status
 	GetStream(ctx context.Context) <-chan []byte
+	Cleanup(ctx context.Context) error
 }
 
 type job struct {
@@ -123,4 +124,8 @@ func (j *job) updateStatus(updateFn func(*Status)) {
 			break
 		}
 	}
+}
+
+func (j *job) Cleanup(ctx context.Context) error {
+	return nil
 }
