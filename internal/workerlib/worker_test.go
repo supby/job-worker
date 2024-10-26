@@ -11,112 +11,123 @@ import (
 )
 
 func TestStartExistingCommand(t *testing.T) {
+	testCtx := context.Background()
+
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "ls", Arguments: []string{"-a"}})
+	jobID, err := w.Start(testCtx, job.Command{Name: "ls", Arguments: []string{"-a"}})
 
 	assert.NotEmpty(t, jobID)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 func TestStartNotExistingCommand(t *testing.T) {
+	testCtx := context.Background()
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "blablabla17"})
+	jobID, err := w.Start(testCtx, job.Command{Name: "blablabla17"})
 
 	assert.NotEmpty(t, jobID)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func TestStopNotExistingJob(t *testing.T) {
+	testCtx := context.Background()
 	randomJobID, _ := uuid.NewRandom()
 	w := New()
-	err := w.Stop(job.JobID(randomJobID))
+	err := w.Stop(testCtx, job.JobID(randomJobID))
 
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func TestStopExistingJob(t *testing.T) {
+	testCtx := context.Background()
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"2"}})
-	assert.Nil(t, err)
+	jobID, err := w.Start(testCtx, job.Command{Name: "sleep", Arguments: []string{"2"}})
+	assert.NoError(t, err)
 
-	err = w.Stop(jobID)
-	assert.Nil(t, err)
+	err = w.Stop(testCtx, jobID)
+	assert.NoError(t, err)
 }
 
 func TestStopExitedJob(t *testing.T) {
+	testCtx := context.Background()
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"1"}})
+	jobID, err := w.Start(testCtx, job.Command{Name: "sleep", Arguments: []string{"1"}})
 	assert.NoError(t, err)
 
 	time.Sleep(time.Second * 2)
 
-	err = w.Stop(jobID)
-	assert.Nil(t, err)
+	err = w.Stop(testCtx, jobID)
+	assert.NoError(t, err)
 }
 
 func TestQueryRunningJob(t *testing.T) {
+	testCtx := context.Background()
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"1"}})
-	assert.Nil(t, err)
+	jobID, err := w.Start(testCtx, job.Command{Name: "sleep", Arguments: []string{"1"}})
+	assert.NoError(t, err)
 
-	status, err := w.QueryStatus(jobID)
-	assert.Nil(t, err)
+	status, err := w.QueryStatus(testCtx, jobID)
+	assert.NoError(t, err)
 	assert.False(t, status.Exited)
 	assert.True(t, status.StatusCode == job.RUNNING)
 }
 
 func TestQueryExitedJob(t *testing.T) {
+	testCtx := context.Background()
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"1"}})
-	assert.Nil(t, err)
+	jobID, err := w.Start(testCtx, job.Command{Name: "sleep", Arguments: []string{"1"}})
+	assert.NoError(t, err)
 
 	time.Sleep(time.Second * 2)
 
-	status, err := w.QueryStatus(jobID)
-	assert.Nil(t, err)
+	status, err := w.QueryStatus(testCtx, jobID)
+	assert.NoError(t, err)
 	assert.True(t, status.Exited)
 	assert.True(t, status.StatusCode == job.EXITED)
 }
 
 func TestQueryStoppedJob(t *testing.T) {
+	testCtx := context.Background()
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "sleep", Arguments: []string{"1"}})
-	assert.Nil(t, err)
+	jobID, err := w.Start(testCtx, job.Command{Name: "sleep", Arguments: []string{"1"}})
+	assert.NoError(t, err)
 
-	err = w.Stop(jobID)
-	assert.Nil(t, err)
+	err = w.Stop(testCtx, jobID)
+	assert.NoError(t, err)
 
 	time.Sleep(time.Second * 2)
 
-	status, err := w.QueryStatus(jobID)
-	assert.Nil(t, err)
+	status, err := w.QueryStatus(testCtx, jobID)
+	assert.NoError(t, err)
 	assert.False(t, status.Exited)
 	assert.True(t, status.StatusCode == job.STOPPED)
 }
 
 func TestQueryNotExistingJob(t *testing.T) {
+	testCtx := context.Background()
 	randomJobID, _ := uuid.NewRandom()
 	w := New()
-	status, err := w.QueryStatus(job.JobID(randomJobID))
+	status, err := w.QueryStatus(testCtx, job.JobID(randomJobID))
 
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	assert.Nil(t, status)
 }
 
 func TestStreamExistingJob(t *testing.T) {
+	testCtx := context.Background()
 	w := New()
-	jobID, err := w.Start(job.Command{Name: "bash", Arguments: []string{"-c", "while true; do date; sleep 1; done"}})
-	assert.Nil(t, err)
+	jobID, err := w.Start(testCtx, job.Command{Name: "bash", Arguments: []string{"-c", "while true; do date; sleep 1; done"}})
+	assert.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	outchan, err := w.GetStream(ctx, jobID)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, <-outchan)
 
-	err = w.Stop(jobID)
-	assert.Nil(t, err)
+	err = w.Stop(testCtx, jobID)
+	assert.NoError(t, err)
 }
 
 func TestStreamNotExistingJob(t *testing.T) {

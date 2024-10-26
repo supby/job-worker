@@ -98,7 +98,7 @@ func (j *job) Stop() error {
 	j.mtx.Lock()
 	defer j.mtx.Unlock()
 
-	if !j.cmd.ProcessState.Exited() {
+	if j.cmd.ProcessState == nil || !j.cmd.ProcessState.Exited() {
 		j.updateStatus(func(s *Status) {
 			s.StatusCode = STOPPED
 		})
