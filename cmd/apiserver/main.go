@@ -8,7 +8,7 @@ import (
 
 func main() {
 	cfg := api.LoadConfigFromYaml("./server_config.yaml")
-	err := api.StartServer(cfg)
+	err := api.StartServer(&cfg)
 	if err != nil {
 		log.Fatalf("fail to start server, %v", err)
 	}
