@@ -4,6 +4,10 @@ The project aims to provide tools to run and control jobs (processes) on remote 
 
 ## Overview
 
+## Pre-requesties
+
+- [protocol buffer compiler](https://grpc.io/docs/protoc-installation/)
+
 ### The Library
 
 It is Golang package which provides abstration to control host processes. It supports four operations: 

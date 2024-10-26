@@ -9,9 +9,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/supby/job-worker/cli/client/argsparser"
-	"github.com/supby/job-worker/client"
+	"github.com/supby/job-worker/cmd/client/argsparser"
 	"github.com/supby/job-worker/generated/proto"
+	"github.com/supby/job-worker/internal/client"
 )
 
 func main() {

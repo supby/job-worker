@@ -17,6 +17,7 @@ job-worker
 
 bin/
 generated/
+.vscode/
 
 *.key
 *.pem
