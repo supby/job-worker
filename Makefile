@@ -8,10 +8,12 @@ api:
 
 client:
 	go build -o ./bin/client-cli cmd/client/main.go
-	
+
+colon = :
+
 proto:
 	rm -rf generated \
 	&& mkdir generated \
-	&& protoc --go_out=generated --go_opt=paths=source_relative --go-grpc_out=generated --go-grpc_opt=paths=source_relative proto/workerservice.proto
+	&& docker run --rm -v $(shell pwd):/workspace -p 444:444 --user 1000 -w /workspace namely/protoc-all:1.51_2 -d proto -l go -o generated/proto --go-source-relative --with-validator
 
 all: proto test api client
