@@ -14,6 +14,6 @@ colon = :
 proto:
 	rm -rf generated \
 	&& mkdir generated \
-	&& docker run --rm -v $(shell pwd):/workspace -p 444:444 --user 1000 -w /workspace namely/protoc-all:1.51_2 -d proto -l go -o generated/proto --go-source-relative --with-validator
+	&& docker run --rm -v $(shell pwd):/workspace -w /workspace --user 1000 namely/protoc-all:1.51_2 -d proto -l go -o generated/proto --go-source-relative
 
 all: proto test api client
