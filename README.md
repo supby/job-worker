@@ -4,10 +4,6 @@ The project aims to provide tools to run and control jobs (processes) on remote 
 
 ## Overview
 
-## Pre-requesties
-
-- [protocol buffer compiler](https://grpc.io/docs/protoc-installation/)
-
 ### The Library
 
 It is Golang package which provides abstration to control host processes. It supports four operations: 
@@ -118,17 +114,10 @@ Server should supports two roles:
 - Full: full access to functionality provided by API.
 
 
-## Trade-offs
+## Misc
 
-### Authorization
+### Generate test certificates
 
-Provisioning of clients is not a part of the task. CA and certificates will be generated manually using openssl. Roles will be hardcoded in on server side.
-
-### Configuration
-
-All configuration(server and client) will be hardcoded in app because of simplicity.
-
-### Loggining
-
-Persistent logging system is not a part of the task. Server it self will log in standart output. Logs from jobs processes will be stored in memory.
-
+```
+make gentestcert
+```
