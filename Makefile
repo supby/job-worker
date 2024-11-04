@@ -12,7 +12,7 @@ buildclient:
 genproto:
 	rm -rf generated \
 	&& mkdir -p generated/proto \
-	&& docker run --rm -v $(shell pwd):/workspace -w /workspace --user 1000 namely/protoc-all:1.51_2 -d proto -l go -o generated/proto --go-source-relative
+	&& docker run --rm -v $(shell pwd):/workspace -w /workspace --user $(shell id -u) namely/protoc-all:1.51_2 -d proto -l go -o generated/proto --go-source-relative
 
 
 openssl = docker run -ti --rm -v $(shell pwd)/cert:/apps -w /apps alpine/openssl
