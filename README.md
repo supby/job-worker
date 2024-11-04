@@ -1,3 +1,5 @@
+https://github.com/supby/job-worker/actions/workflows/main.yml/badge.svg
+
 # job-worker
 
 The project aims to provide tools to run and control jobs (processes) on remote or local host though GRPC API. It consists of three main parts: The Library, GRPC API and standalone CLI client.
