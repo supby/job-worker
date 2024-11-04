@@ -1,4 +1,4 @@
-https://github.com/supby/job-worker/actions/workflows/main.yml/badge.svg
+![main](https://github.com/supby/job-worker/actions/workflows/main.yml/badge.svg)
 
 # job-worker
 
