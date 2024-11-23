@@ -28,14 +28,14 @@ func (s *WorkerServer) Start(ctx context.Context, r *workerservicepb.StartReques
 
 	jobID, err := s.Worker.Start(ctx, job.Command{Name: r.CommandName, Arguments: r.Arguments})
 	if err != nil {
-		log.Printf("Failed to start job: %v", err)
+		log.Printf("[api] failed to start job: %v", err)
 		return nil, status.Error(codes.Internal, "failed to start job")
 	}
 
 	res := &workerservicepb.StartResponse{
 		JobID: jobID[:],
 	}
-	log.Printf("Job started: %v", jobID)
+	log.Printf("[api] job started: %x", jobID)
 
 	return res, nil
 }
@@ -50,11 +50,11 @@ func (s *WorkerServer) Stop(ctx context.Context, r *workerservicepb.StopRequest)
 		if errors.Is(err, workerlib.ErrJobNotFound) {
 			return nil, status.Error(codes.NotFound, "job not found")
 		}
-		log.Printf("Failed to stop job %v: %v", jobID, err)
+		log.Printf("[api] failed to stop job %x: %v", jobID, err)
 		return nil, status.Error(codes.Internal, "failed to stop job")
 	}
 
-	log.Printf("Job stopped: %v", jobID)
+	log.Printf("[api] job stopped: %x", jobID)
 	return &workerservicepb.StopResponse{}, nil
 }
 
@@ -69,7 +69,7 @@ func (s *WorkerServer) QueryStatus(ctx context.Context, r *workerservicepb.Query
 		if errors.Is(err, workerlib.ErrJobNotFound) {
 			return nil, status.Error(codes.NotFound, "job not found")
 		}
-		log.Printf("Failed to query status for job %v: %v", jobID, err)
+		log.Printf("[api] failed to query status for job %x: %v", jobID, err)
 		return nil, status.Error(codes.Internal, "failed to query job status")
 	}
 
@@ -92,7 +92,7 @@ func (s *WorkerServer) GetOutput(r *workerservicepb.GetOutputRequest, stream wor
 		if errors.Is(err, workerlib.ErrJobNotFound) {
 			return status.Error(codes.NotFound, "job not found")
 		}
-		log.Printf("Failed to get stream for job %v: %v", jobID, err)
+		log.Printf("[api] failed to get stream for job %x: %v", jobID, err)
 		return status.Error(codes.Internal, "failed to get job output stream")
 	}
 
@@ -106,7 +106,7 @@ func (s *WorkerServer) GetOutput(r *workerservicepb.GetOutputRequest, stream wor
 			}
 			res := &workerservicepb.GetOutputResponse{Output: logData}
 			if err := stream.Send(res); err != nil {
-				log.Printf("Failed to send output for job %v: %v", jobID, err)
+				log.Printf("[api] failed to send output for job %x: %v", jobID, err)
 				return status.Error(codes.Internal, "failed to send job output")
 			}
 		}

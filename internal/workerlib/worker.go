@@ -38,13 +38,13 @@ func (w *worker) Start(ctx context.Context, command job.Command) (job.JobID, err
 	default:
 		j, err := job.StartNew(command)
 		if err != nil {
-			return job.Nil, fmt.Errorf("failed to start job: %w", err)
+			return job.Nil, fmt.Errorf("[worker] failed to start job: %w", err)
 		}
 
 		jobID := j.GetID()
 		w.jobs.Store(jobID, j)
 
-		log.Printf("Job started: %v", jobID)
+		log.Printf("[worker] Job started: %x", jobID)
 		return jobID, nil
 	}
 }
@@ -61,9 +61,9 @@ func (w *worker) Stop(ctx context.Context, jobID job.JobID) error {
 	default:
 		err = j.Stop()
 		if err != nil {
-			return fmt.Errorf("failed to stop job %v: %w", jobID, err)
+			return fmt.Errorf("[worker] failed to stop job %v: %w", jobID, err)
 		}
-		log.Printf("Job stopped: %v", jobID)
+		log.Printf("[worker] Job stopped: %x", jobID)
 		return nil
 	}
 }
@@ -108,7 +108,7 @@ func (w *worker) Cleanup(ctx context.Context) error {
 		default:
 			j := value.(job.Job)
 			if cleanupErr := j.Cleanup(ctx); cleanupErr != nil {
-				log.Printf("Error cleaning up job %v: %v", key, cleanupErr)
+				log.Printf("[worker] error cleaning up job %v: %v", key, cleanupErr)
 			}
 			w.jobs.Delete(key)
 			return true

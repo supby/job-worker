@@ -86,9 +86,11 @@ func (j *job) updateJobStatus() {
 		s.Exited = j.cmd.ProcessState.Exited()
 		if s.StatusCode != STOPPED {
 			s.StatusCode = EXITED
+
+			log.Printf("[job] job exited: %x, exit code: %v", j.id, s.ExitCode)
 		}
 		if err != nil {
-			log.Printf("Command execution failed: %v", err)
+			log.Printf("job] command execution failed: %v", err)
 			s.Error = err.Error()
 		}
 	})
