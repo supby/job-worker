@@ -14,7 +14,7 @@ import (
 
 // Job interface encapsulates logic for one job.
 type Job interface {
-	GetID() JobID
+	GetID() uuid.UUID
 	Stop() error
 	GetStatus() *Status
 	GetStream(ctx context.Context) <-chan []byte
@@ -22,7 +22,7 @@ type Job interface {
 }
 
 type job struct {
-	id     JobID
+	id     uuid.UUID
 	cmd    *exec.Cmd
 	status atomic.Value
 	logger joblogger.JobLogger
@@ -35,13 +35,13 @@ func StartNew(command Command) (Job, error) {
 		return nil, err
 	}
 
-	logger, err := joblogger.New()
+	logger, err := joblogger.New(jobID)
 	if err != nil {
 		return nil, err
 	}
 
 	j := &job{
-		id:     JobID(jobID),
+		id:     jobID,
 		logger: logger,
 	}
 
@@ -75,7 +75,7 @@ func StartNew(command Command) (Job, error) {
 	return j, nil
 }
 
-func (j *job) GetID() JobID {
+func (j *job) GetID() uuid.UUID {
 	return j.id
 }
 
@@ -87,7 +87,7 @@ func (j *job) updateJobStatus() {
 		if s.StatusCode != STOPPED {
 			s.StatusCode = EXITED
 
-			log.Printf("[job] job exited: %x, exit code: %v", j.id, s.ExitCode)
+			log.Printf("[job] job exited: %x, exit code: %v", j.id[:], s.ExitCode)
 		}
 		if err != nil {
 			log.Printf("job] command execution failed: %v", err)

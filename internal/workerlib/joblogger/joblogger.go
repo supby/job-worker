@@ -2,9 +2,13 @@ package joblogger
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"log"
 	"os"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 // JobLogger is an interface for a job logger that uses a temporary file for storage
@@ -20,18 +24,20 @@ type listener struct {
 }
 
 type jobLogger struct {
+	jobId     uuid.UUID
 	file      *os.File
 	mu        sync.Mutex
 	listeners map[*listener]struct{}
 }
 
-func New() (JobLogger, error) {
-	file, err := os.CreateTemp("", "joblog-*.txt")
+func New(jobId uuid.UUID) (JobLogger, error) {
+	file, err := os.CreateTemp("", fmt.Sprintf("joblog-%x-*.txt", jobId))
 	if err != nil {
 		return nil, err
 	}
 
 	return &jobLogger{
+		jobId:     jobId,
 		file:      file,
 		listeners: make(map[*listener]struct{}),
 	}, nil
@@ -84,7 +90,7 @@ func (jl *jobLogger) GetStream(ctx context.Context) <-chan []byte {
 
 		// in case log file already contains something
 		if err := jl.flushToChannel(l, outchan); err != nil {
-			// TODO: Handle error (you might want to log this or send it through a separate error channel)
+			log.Printf("joblogger] job logs flushing failed, jobId: %x, error: %v", jl.jobId, err)
 			return
 		}
 
@@ -94,7 +100,7 @@ func (jl *jobLogger) GetStream(ctx context.Context) <-chan []byte {
 				return
 			case <-l.notify:
 				if err := jl.flushToChannel(l, outchan); err != nil {
-					// TODO: Handle error (you might want to log this or send it through a separate error channel)
+					log.Printf("joblogger] job logs flushing failed, jobId: %x, error: %v", jl.jobId, err)
 					return
 				}
 			}

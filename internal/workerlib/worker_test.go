@@ -33,7 +33,7 @@ func TestStopNotExistingJob(t *testing.T) {
 	testCtx := context.Background()
 	randomJobID, _ := uuid.NewRandom()
 	w := New()
-	err := w.Stop(testCtx, job.JobID(randomJobID))
+	err := w.Stop(testCtx, randomJobID)
 
 	assert.Error(t, err)
 }
@@ -107,7 +107,7 @@ func TestQueryNotExistingJob(t *testing.T) {
 	testCtx := context.Background()
 	randomJobID, _ := uuid.NewRandom()
 	w := New()
-	status, err := w.QueryStatus(testCtx, job.JobID(randomJobID))
+	status, err := w.QueryStatus(testCtx, randomJobID)
 
 	assert.Error(t, err)
 	assert.Nil(t, status)
@@ -133,7 +133,7 @@ func TestStreamExistingJob(t *testing.T) {
 func TestStreamNotExistingJob(t *testing.T) {
 	randomJobID, _ := uuid.NewRandom()
 	w := New()
-	outchan, err := w.GetStream(context.Background(), job.JobID(randomJobID))
+	outchan, err := w.GetStream(context.Background(), randomJobID)
 
 	assert.Nil(t, outchan)
 	assert.Error(t, err)

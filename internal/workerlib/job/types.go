@@ -1,5 +1,7 @@
 package job
 
+import "github.com/google/uuid"
+
 const (
 	UNKNOWN = 0
 	RUNNING = 1
@@ -9,9 +11,7 @@ const (
 	ERROR   = 5
 )
 
-type JobID [16]byte
-
-var Nil JobID // empty UUID, all zeros
+var NilJobId uuid.UUID // empty UUID, all zeros
 
 type Command struct {
 	Name      string

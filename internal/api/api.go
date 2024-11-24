@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/google/uuid"
 	workerservicepb "github.com/supby/job-worker/generated/proto"
 	"github.com/supby/job-worker/internal/workerlib"
 	"github.com/supby/job-worker/internal/workerlib/job"
@@ -35,7 +36,7 @@ func (s *WorkerServer) Start(ctx context.Context, r *workerservicepb.StartReques
 	res := &workerservicepb.StartResponse{
 		JobID: jobID[:],
 	}
-	log.Printf("[api] job started: %x", jobID)
+	log.Printf("[api] job started: %x", res.JobID)
 
 	return res, nil
 }
@@ -54,7 +55,7 @@ func (s *WorkerServer) Stop(ctx context.Context, r *workerservicepb.StopRequest)
 		return nil, status.Error(codes.Internal, "failed to stop job")
 	}
 
-	log.Printf("[api] job stopped: %x", jobID)
+	log.Printf("[api] job stopped: %x", jobID[:])
 	return &workerservicepb.StopResponse{}, nil
 }
 
@@ -113,11 +114,11 @@ func (s *WorkerServer) GetOutput(r *workerservicepb.GetOutputRequest, stream wor
 	}
 }
 
-func (s *WorkerServer) getJobID(j []byte) (job.JobID, error) {
+func (s *WorkerServer) getJobID(j []byte) (uuid.UUID, error) {
 	if len(j) != 16 {
-		return job.JobID{}, errors.New("invalid job ID length")
+		return uuid.UUID{}, errors.New("invalid job ID length")
 	}
-	var jobID job.JobID
+	var jobID uuid.UUID
 	copy(jobID[:], j)
 	return jobID, nil
 }

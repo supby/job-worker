@@ -7,6 +7,7 @@ import (
 	"log"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/supby/job-worker/internal/workerlib/job"
 )
 
@@ -15,10 +16,10 @@ var ErrJobNotFound = errors.New("job not found")
 
 // Worker interface responsible for managing jobs
 type Worker interface {
-	Start(ctx context.Context, command job.Command) (job.JobID, error)
-	Stop(ctx context.Context, jobID job.JobID) error
-	QueryStatus(ctx context.Context, jobID job.JobID) (*job.Status, error)
-	GetStream(ctx context.Context, jobID job.JobID) (<-chan []byte, error)
+	Start(ctx context.Context, command job.Command) (uuid.UUID, error)
+	Stop(ctx context.Context, jobID uuid.UUID) error
+	QueryStatus(ctx context.Context, jobID uuid.UUID) (*job.Status, error)
+	GetStream(ctx context.Context, jobID uuid.UUID) (<-chan []byte, error)
 	Cleanup(ctx context.Context) error
 }
 
@@ -31,25 +32,25 @@ func New() Worker {
 	return &worker{}
 }
 
-func (w *worker) Start(ctx context.Context, command job.Command) (job.JobID, error) {
+func (w *worker) Start(ctx context.Context, command job.Command) (uuid.UUID, error) {
 	select {
 	case <-ctx.Done():
-		return job.Nil, ctx.Err()
+		return job.NilJobId, ctx.Err()
 	default:
 		j, err := job.StartNew(command)
 		if err != nil {
-			return job.Nil, fmt.Errorf("[worker] failed to start job: %w", err)
+			return job.NilJobId, fmt.Errorf("[worker] failed to start job: %w", err)
 		}
 
 		jobID := j.GetID()
 		w.jobs.Store(jobID, j)
 
-		log.Printf("[worker] Job started: %x", jobID)
+		log.Printf("[worker] Job started: %x", jobID[:])
 		return jobID, nil
 	}
 }
 
-func (w *worker) Stop(ctx context.Context, jobID job.JobID) error {
+func (w *worker) Stop(ctx context.Context, jobID uuid.UUID) error {
 	j, err := w.getJob(jobID)
 	if err != nil {
 		return err
@@ -63,19 +64,19 @@ func (w *worker) Stop(ctx context.Context, jobID job.JobID) error {
 		if err != nil {
 			return fmt.Errorf("[worker] failed to stop job %v: %w", jobID, err)
 		}
-		log.Printf("[worker] Job stopped: %x", jobID)
+		log.Printf("[worker] Job stopped: %x", jobID[:])
 		return nil
 	}
 }
 
-func (w *worker) getJob(jobID job.JobID) (job.Job, error) {
+func (w *worker) getJob(jobID uuid.UUID) (job.Job, error) {
 	if j, ok := w.jobs.Load(jobID); ok {
 		return j.(job.Job), nil
 	}
 	return nil, ErrJobNotFound
 }
 
-func (w *worker) QueryStatus(ctx context.Context, jobID job.JobID) (*job.Status, error) {
+func (w *worker) QueryStatus(ctx context.Context, jobID uuid.UUID) (*job.Status, error) {
 	j, err := w.getJob(jobID)
 	if err != nil {
 		return nil, err
@@ -89,7 +90,7 @@ func (w *worker) QueryStatus(ctx context.Context, jobID job.JobID) (*job.Status,
 	}
 }
 
-func (w *worker) GetStream(ctx context.Context, jobID job.JobID) (<-chan []byte, error) {
+func (w *worker) GetStream(ctx context.Context, jobID uuid.UUID) (<-chan []byte, error) {
 	j, err := w.getJob(jobID)
 	if err != nil {
 		return nil, err
