@@ -82,13 +82,19 @@ func (jl *jobLogger) GetStream(ctx context.Context) <-chan []byte {
 			close(l.notify)
 		}()
 
+		// in case log file already contains something
+		if err := jl.flushToChannel(l, outchan); err != nil {
+			// TODO: Handle error (you might want to log this or send it through a separate error channel)
+			return
+		}
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-l.notify:
 				if err := jl.flushToChannel(l, outchan); err != nil {
-					// Handle error (you might want to log this or send it through a separate error channel)
+					// TODO: Handle error (you might want to log this or send it through a separate error channel)
 					return
 				}
 			}
