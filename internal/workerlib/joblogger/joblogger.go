@@ -14,7 +14,7 @@ import (
 // JobLogger is an interface for a job logger that uses a temporary file for storage
 type JobLogger interface {
 	Write(p []byte) (n int, err error)
-	GetStream(ctx context.Context) <-chan []byte
+	GetStream(ctx context.Context) (<-chan []byte, error)
 	Close() error
 }
 
@@ -68,7 +68,12 @@ func (jl *jobLogger) notifyListeners() {
 	}
 }
 
-func (jl *jobLogger) GetStream(ctx context.Context) <-chan []byte {
+func (jl *jobLogger) GetStream(ctx context.Context) (<-chan []byte, error) {
+	// Check if the file exists
+	if _, err := os.Stat(jl.file.Name()); os.IsNotExist(err) {
+		return nil, fmt.Errorf("log file does not exist: %s", jl.file.Name())
+	}
+
 	outchan := make(chan []byte, 100) // Buffered channel to reduce blocking
 	l := &listener{
 		offset: 0,
@@ -107,7 +112,7 @@ func (jl *jobLogger) GetStream(ctx context.Context) <-chan []byte {
 		}
 	}()
 
-	return outchan
+	return outchan, nil
 }
 
 func (jl *jobLogger) flushToChannel(l *listener, outchan chan<- []byte) error {
